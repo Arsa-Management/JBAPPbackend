@@ -114,9 +114,9 @@ router.get("/customer/view/:customerId", async (req, res) => {
 // ✅ 5. Get All Orders (Admin)
 router.get("/", async (req, res) => {
   try {
-    const { role } = req.query;
-    if (role !== "admin")
-      return res.status(403).json({ error: "Only admins can view all orders" });
+    // const { role } = req.query;
+    // if (role !== "admin")
+    //   return res.status(403).json({ error: "Only admins can view all orders" });
 
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
@@ -128,3 +128,4 @@ router.get("/", async (req, res) => {
 
 
 module.exports = router;
+
