@@ -10,9 +10,11 @@ const connectdb = require('./Database/Connetion');
 const userRoutes = require("./routes/userRoutes");
 const orderRoutes = require("./routes/orederRoutes");
 const CouponRoutes = require("./routes/CouponRoutes");
+const Dashboard = require("./routes/Dashboard");
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/coupons", CouponRoutes);
+app.use("/api/dashboard", CouponRoutes);
 
 
 
