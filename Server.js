@@ -14,7 +14,7 @@ const Dashboard = require("./routes/Dashboard");
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/coupons", CouponRoutes);
-app.use("/api/dashboard", CouponRoutes);
+app.use("/api/dashboard", Dashboard);
 
 
 
