@@ -20,7 +20,7 @@ const orderSchema = new mongoose.Schema(
     paymentStatus: { type: String, enum: ["Pending", "Paid", "Failed"], default: "Pending" },
     orderStatus: {
       type: String,
-      enum: ["Pending", "Preparing", "Out for delivery", "Completed", "Cancelled", "Rejected"],
+      enum: ["Pending", "Preparing", "Out for delivery", "Completed", "Delivered" ,"Cancelled", "Rejected"],
       default: "Pending",
     },
     deliveryAddress: { type: Object, required: true },
@@ -29,3 +29,4 @@ const orderSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Order", orderSchema);
+
