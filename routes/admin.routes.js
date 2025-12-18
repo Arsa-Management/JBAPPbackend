@@ -4,7 +4,7 @@ const User = require("../models/User");
 const DeliveryBoy = require("../models/DeliveryBoy");
 const Order = require("../models/Order");
 const auth = require("../middleware/auth");
-// const role = require("../middleware/role");
+const role = require("../middleware/role");
 
 
 // ✅ Add Delivery Boy
