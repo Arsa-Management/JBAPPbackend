@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
 
 router.post("/add-delivery-boy", async (req, res) => {
   try {
-    const { fullName, email, phone, password, vehicleType } = req.body;
+    const { name,  phone, password, vehicleType } = req.body;
 
     // ⚠️ In real app: check admin JWT here
 
@@ -42,8 +42,7 @@ router.post("/add-delivery-boy", async (req, res) => {
 
     // Create user with delivery role
     const deliveryUser = await User.create({
-      fullName,
-      email,
+      name,
       phone,
       passwordHash,
       role: "delivery"
