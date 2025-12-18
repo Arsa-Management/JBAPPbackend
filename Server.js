@@ -13,8 +13,8 @@ const CouponRoutes = require("./routes/CouponRoutes");
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/coupons", CouponRoutes);
-app.use("/admin", require("./routes/admin.routes"));
-app.use("/delivery", require("./routes/delivery.routes"));
+app.use("/api/admin", require("./routes/admin.routes"));
+app.use("/api/delivery", require("./routes/delivery.routes"));
 
 
 
