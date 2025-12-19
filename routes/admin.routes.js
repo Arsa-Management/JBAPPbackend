@@ -55,4 +55,17 @@ router.put(
   }
 );
 
+// ➤ GET ALL DELIVERY BOYS
+router.get("/delivery-boys", async (req, res) => {
+  try {
+    const deliveryBoys = await DeliveryBoy.find()
+      .populate("userId", "fullName email phone");
+
+    res.json(deliveryBoys);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 module.exports = router;
