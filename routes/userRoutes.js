@@ -3,6 +3,8 @@ const router = express.Router();
 const User = require("../models/User");
 const DeliveryBoy = require("../models/DeliveryBoy");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 // ➤ Create User
 router.post("/", async (req, res) => {
  try {
@@ -25,6 +27,48 @@ router.post("/", async (req, res) => {
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+// ➤ Login User / Delivery Boy
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Check user exists
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(400).json({ message: "Invalid email or password" });
+
+    // 2. Compare password
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid email or password" });
+
+    // 3. Create JWT token
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        role: user.role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // 4. Send response
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
