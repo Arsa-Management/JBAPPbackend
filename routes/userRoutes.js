@@ -155,7 +155,7 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-router.post("/api/address/:userId", async (req, res) => {
+router.post("/address/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -177,7 +177,7 @@ router.post("/api/address/:userId", async (req, res) => {
 
 
 // ➤ GET ALL ADDRESSES
-router.get("/api/address/:userId", async (req, res) => {
+router.get("/address/:userId", async (req, res) => {
   try {
     const user = await User.findById(req.params.userId).select("addresses");
 
@@ -192,7 +192,7 @@ router.get("/api/address/:userId", async (req, res) => {
 
 
 // ➤ UPDATE ADDRESS
-router.put("/api/address/:userId/:addressId", async (req, res) => {
+router.put("/address/:userId/:addressId", async (req, res) => {
   try {
     const { userId, addressId } = req.params;
 
@@ -217,7 +217,7 @@ router.put("/api/address/:userId/:addressId", async (req, res) => {
 
 
 // ➤ DELETE ADDRESS (optional)
-router.delete("/api/address/:userId/:addressId", async (req, res) => {
+router.delete("/address/:userId/:addressId", async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ message: "User not found" });
