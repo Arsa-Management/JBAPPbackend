@@ -155,5 +155,84 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.post("/api/address/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.addresses.push(req.body);
+    await user.save();
+
+    res.status(201).json({
+      message: "Address added successfully",
+      addresses: user.addresses
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// ➤ GET ALL ADDRESSES
+router.get("/api/address/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select("addresses");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user.addresses);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// ➤ UPDATE ADDRESS
+router.put("/api/address/:userId/:addressId", async (req, res) => {
+  try {
+    const { userId, addressId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const address = user.addresses.id(addressId);
+    if (!address) return res.status(404).json({ message: "Address not found" });
+
+    Object.assign(address, req.body);
+    await user.save();
+
+    res.json({
+      message: "Address updated successfully",
+      address
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// ➤ DELETE ADDRESS (optional)
+router.delete("/api/address/:userId/:addressId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.addresses = user.addresses.filter(
+      addr => addr._id.toString() !== req.params.addressId
+    );
+
+    await user.save();
+
+    res.json({ message: "Address deleted successfully" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 module.exports = router;
