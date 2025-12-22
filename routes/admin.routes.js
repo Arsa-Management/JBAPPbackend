@@ -38,7 +38,7 @@ const role = require("../middleware/role");
 router.put(
   "/assign-delivery",
   auth,
-  role("admin"),
+  // role("admin"),
   async (req, res) => {
     try {
       const { orderId, deliveryBoyId } = req.body;
