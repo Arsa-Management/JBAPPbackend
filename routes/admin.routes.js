@@ -40,20 +40,45 @@ router.put(
   auth,
   role("admin"),
   async (req, res) => {
-    const { orderId, deliveryBoyId } = req.body;
+    try {
+      const { orderId, deliveryBoyId } = req.body;
 
-    const order = await Order.findById(orderId);
-    order.deliveryBoyId = deliveryBoyId;
-    order.status = "Picked";
-    await order.save();
+      if (!orderId || !deliveryBoyId) {
+        return res.status(400).json({ message: "OrderId and DeliveryBoyId are required" });
+      }
 
-    await DeliveryBoy.findByIdAndUpdate(deliveryBoyId, {
-      isAvailable: false
-    });
+      const order = await Order.findById(orderId);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
 
-    res.json({ message: "Delivery boy assigned", order });
+      const deliveryBoy = await DeliveryBoy.findById(deliveryBoyId);
+      if (!deliveryBoy) {
+        return res.status(404).json({ message: "Delivery boy not found" });
+      }
+
+      if (!deliveryBoy.isAvailable) {
+        return res.status(400).json({ message: "Delivery boy is not available" });
+      }
+
+      order.deliveryBoyId = deliveryBoyId;
+      order.status = "Picked";
+      await order.save();
+
+      deliveryBoy.isAvailable = false;
+      await deliveryBoy.save();
+
+      res.json({
+        message: "Delivery boy assigned successfully",
+        order,
+      });
+    } catch (error) {
+      console.error("Assign delivery error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 );
+
 
 // ➤ GET ALL DELIVERY BOYS
 router.get("/delivery-boys", async (req, res) => {
