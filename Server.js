@@ -15,6 +15,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/coupons", CouponRoutes);
 app.use("/api/admin", require("./routes/admin.routes"));
 app.use("/api/delivery", require("./routes/delivery.routes"));
+app.use("/api/dashboard", require("./routes/Dashboard"));
 
 
 
