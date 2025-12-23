@@ -6,8 +6,8 @@ const role = require("../middleware/role");
 
 router.get(
   "/my-orders",
-  auth,
-  role("delivery"),
+  // auth,
+  // role("delivery"),
   async (req, res) => {
     const orders = await Order.find({
       deliveryBoyId: req.user.userId
