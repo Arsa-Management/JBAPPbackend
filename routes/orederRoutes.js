@@ -69,8 +69,8 @@ router.patch("/:id/status", async (req, res) => {
   try {
     const { role, status } = req.body;
 
-    if (role !== "admin")
-      return res.status(403).json({ error: "Only admins can update order status" });
+    // if (role !== "admin")
+    //   return res.status(403).json({ error: "Only admins can update order status" });
 
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
