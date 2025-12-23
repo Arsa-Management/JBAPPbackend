@@ -73,5 +73,42 @@ router.put("/delivery/order-status", async (req, res) => {
   }
 });
 
+// Singel Order Fetch
+router.get(
+  "/order/:id",
+  auth,
+  role("delivery"),
+  async (req, res) => {
+    try {
+      const delivery = await Delivery.findOne({
+        userId: req.user.userId,
+      });
+
+      if (!delivery) {
+        return res
+          .status(404)
+          .json({ message: "Delivery profile not found" });
+      }
+
+      const order = await Order.findOne({
+        _id: req.params.id,
+        deliveryBoyId: delivery._id,
+      });
+
+      if (!order) {
+        return res.status(404).json({
+          message: "Order not found or not assigned to you",
+        });
+      }
+
+      res.json(order);
+    } catch (error) {
+      console.error("❌ fetch order error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+
 
 module.exports = router;
