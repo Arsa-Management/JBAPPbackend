@@ -9,6 +9,11 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+     deliveryBoyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DeliveryBoy",
+      default: null,
+    },
     items: [orderItemSchema],
 
     subTotal: { type: Number, required: true },   // qty * price
