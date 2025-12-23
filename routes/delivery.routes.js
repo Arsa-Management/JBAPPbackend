@@ -9,11 +9,26 @@ router.get(
   auth,
   role("delivery"),
   async (req, res) => {
-    const orders = await Order.find({
-      deliveryBoyId: req.user.userId
-    });
+    try {
+      // 1️⃣ Find delivery profile
+      const delivery = await Delivery.findOne({
+        userId: req.user.userId,
+      });
 
-    res.json(orders);
+      if (!delivery) {
+        return res.status(404).json({ message: "Delivery profile not found" });
+      }
+
+      // 2️⃣ Fetch orders using delivery _id
+      const orders = await Order.find({
+        deliveryBoyId: delivery._id,
+      });
+
+      res.json(orders);
+    } catch (error) {
+      console.error("❌ my-orders error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
   }
 );
 
