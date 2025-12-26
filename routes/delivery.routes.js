@@ -56,7 +56,7 @@ router.put("/delivery/order-status", async (req, res) => {
 
     // When delivered → free delivery boy
     if (status === "Delivered" && order.deliveryBoyId) {
-      await DeliveryBoy.findByIdAndUpdate(order.deliveryBoyId, {
+      await Delivery.findByIdAndUpdate(order.deliveryBoyId, {
         isAvailable: true,
       });
     }
