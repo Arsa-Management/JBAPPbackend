@@ -92,7 +92,7 @@ router.get(
 
       const order = await Order.findOne({
         _id: req.params.id,
-        deliveryBoyId: delivery._id,
+        Delivery: delivery._id,
       });
 
       if (!order) {
