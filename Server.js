@@ -1,30 +1,55 @@
-const express = require('express');
+const express = require("express");
+const http = require("http");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const { Server } = require("socket.io");
+
+dotenv.config({ path: "./dotenv" });
+
 const app = express();
-const dotenv = require('dotenv');
-const cors = require('cors');
-app.use(express.json());  // parses JSON body
-app.use(cors()); // Enable CORS for all routes
-dotenv.config({path:"./dotenv"});
-console.log(process.env.PORT);
-const connectdb = require('./Database/Connetion');
-const userRoutes = require("./routes/userRoutes");
-const orderRoutes = require("./routes/orederRoutes");
-const CouponRoutes = require("./routes/CouponRoutes");
-app.use("/api/users", userRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/coupons", CouponRoutes);
+
+// 🔹 Middlewares
+app.use(express.json());
+app.use(cors());
+
+// 🔹 DB
+const connectdb = require("./Database/Connetion");
+connectdb();
+
+// 🔹 Routes
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/orders", require("./routes/orederRoutes"));
+app.use("/api/coupons", require("./routes/CouponRoutes"));
 app.use("/api/admin", require("./routes/admin.routes"));
 app.use("/api/delivery", require("./routes/delivery.routes"));
 app.use("/api/dashboard", require("./routes/Dashboard"));
 
+// 🔹 Create HTTP server (IMPORTANT)
+const server = http.createServer(app);
 
+// 🔹 Socket.IO setup (RENDER SAFE)
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+  transports: ["websocket"], // ⭐ REQUIRED for Render
+});
 
+// 🔔 Socket connection
+io.on("connection", (socket) => {
+  console.log("🚴 Delivery boy connected:", socket.id);
 
+  socket.on("disconnect", () => {
+    console.log("❌ Delivery boy disconnected:", socket.id);
+  });
+});
 
+// 🔹 Export io for emitting events in routes
+module.exports.io = io;
 
-
-
-
-app.listen(5000, () => {
-    console.log("Server is running");
+// 🔹 Start server (NOT app.listen)
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
