@@ -74,7 +74,9 @@ router.post("/login", async (req, res) => {
 
 router.post("/add-delivery-boy", async (req, res) => {
   try {
+
     const { fullName, email, phone, password, vehicleType } = req.body;
+console.log(req.body);
 
     // ⚠️ In real app: check admin JWT here
 
@@ -158,6 +160,7 @@ router.delete("/:id", async (req, res) => {
 router.post("/address/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+console.log(req.params);
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
