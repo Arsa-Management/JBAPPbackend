@@ -125,6 +125,19 @@ router.get("/", async (req, res) => {
   }
 });
 // ✅ 5. Get All Orders (Admin)
+// ✅ 6. Get Order Status (for OrderSuccess screen)
+router.get("/:id/status", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).select("orderStatus");
+
+    if (!order)
+      return res.status(404).json({ error: "Order not found" });
+
+    res.json({ status: order.orderStatus });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
 
 
 module.exports = router;
