@@ -10,11 +10,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ✅ DB
+// DB
 const connectdb = require("./Database/Connetion");
 // connectdb();
 
-// ✅ Routes
+// Routes
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/orders", require("./routes/orederRoutes"));
 app.use("/api/coupons", require("./routes/CouponRoutes"));
@@ -22,10 +22,10 @@ app.use("/api/admin", require("./routes/admin.routes"));
 app.use("/api/delivery", require("./routes/delivery.routes"));
 app.use("/api/dashboard", require("./routes/Dashboard"));
 
-// ✅ HTTP server
+// HTTP server
 const server = http.createServer(app);
 
-// ✅ Socket.IO (Render safe)
+// Socket.IO
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -34,16 +34,16 @@ const io = new Server(server, {
   transports: ["websocket"],
 });
 
+// 🔥 THIS IS THE KEY LINE
+app.set("io", io);
+
 io.on("connection", (socket) => {
   console.log("🚴 Delivery boy connected:", socket.id);
 
   socket.on("disconnect", () => {
-    console.log("❌ Delivery boy disconnected");
+    console.log("❌ Delivery boy disconnected:", socket.id);
   });
 });
-
-// Export io
-module.exports.io = io;
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

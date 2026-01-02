@@ -65,24 +65,50 @@ router.patch("/:id/cancel", async (req, res) => {
 });
 
 // ✅ 3. Update Order Status (Admin only)
+// router.patch("/:id/status", async (req, res) => {
+//   try {
+//     const { role, status } = req.body;
+
+//     // if (role !== "admin")
+//     //   return res.status(403).json({ error: "Only admins can update order status" });
+
+//     const order = await Order.findById(req.params.id);
+//     if (!order) return res.status(404).json({ error: "Order not found" });
+
+//     order.orderStatus = status; // must be one of enum values
+//     await order.save();
+
+//     res.json(order);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// });
 router.patch("/:id/status", async (req, res) => {
   try {
-    const { role, status } = req.body;
-
-    // if (role !== "admin")
-    //   return res.status(403).json({ error: "Only admins can update order status" });
+    const { status } = req.body;
 
     const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
 
-    order.orderStatus = status; // must be one of enum values
+    order.orderStatus = status;
     await order.save();
+
+    // 🔴 Real-time emit
+    const io = req.app.get("io");
+
+    io.emit("orderStatusUpdated", {
+      orderId: order._id,
+      status: order.orderStatus,
+    });
 
     res.json(order);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
+
 
 // ✅ 4. Get Customer Orders (filter by status)
 router.get("/customer/:customerId", async (req, res) => {
