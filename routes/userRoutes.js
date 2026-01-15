@@ -223,6 +223,8 @@ router.put("/address/:userId/:addressId", async (req, res) => {
 router.delete("/address/:userId/:addressId", async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
+    console.log("user")
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.addresses = user.addresses.filter(
@@ -234,6 +236,7 @@ router.delete("/address/:userId/:addressId", async (req, res) => {
     res.json({ message: "Address deleted successfully" });
 
   } catch (err) {
+    console.log("error",err)
     res.status(500).json({ message: err.message });
   }
 });
