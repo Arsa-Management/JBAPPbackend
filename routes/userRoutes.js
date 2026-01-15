@@ -222,6 +222,7 @@ router.put("/address/:userId/:addressId", async (req, res) => {
 // ➤ DELETE ADDRESS (optional)
 router.delete("/address/:userId/:addressId", async (req, res) => {
   try {
+    console.log("inside delete")
     const user = await User.findById(req.params.userId);
     console.log("user")
 
