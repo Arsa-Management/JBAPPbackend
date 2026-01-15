@@ -22,6 +22,7 @@ app.use("/api/admin", require("./routes/admin.routes"));
 app.use("/api/delivery", require("./routes/delivery.routes"));
 app.use("/api/dashboard", require("./routes/Dashboard"));
 app.use("/api/sales", require("./routes/salesReport"));
+app.use("/api/recommend", require("./routes/recommendation"));
 
 // HTTP server
 const server = http.createServer(app);
