@@ -62,7 +62,20 @@ router.put("/delivery/order-status", async (req, res) => {
     }
 
     await order.save();
+ /* 🔥 SOCKET EMIT (MOST IMPORTANT PART) */
+    const io = req.app.get("io");
 
+    // Emit ONLY to that customer (room = customerId)
+    io.to(order.customerId.toString()).emit("orderStatusUpdated", {
+      orderId: order._id.toString(),
+      status: order.orderStatus,
+    });
+
+    console.log(
+      "📡 Socket emitted →",
+      order.customerId.toString(),
+      order.orderStatus
+    );
     res.json({
       message: `Order marked as ${status}`,
       order,
