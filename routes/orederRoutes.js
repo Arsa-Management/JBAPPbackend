@@ -2,24 +2,23 @@ const express = require("express");
 const Order = require("../models/Order");
 const router = express.Router();
 
-// ✅ 1. Place Order (Customer)
-
-
-// GST rate (example: 5%)
+// GST rate
 const GST_RATE = 0.18;
 
-// ✅ Place Order (Customer)
+/* =========================================================
+   1️⃣ PLACE ORDER (CUSTOMER)
+========================================================= */
 router.post("/", async (req, res) => {
   try {
-    const { customerId, items, paymentMethod, deliveryAddress, discount = 0 } = req.body;
+    const { customerId, items, paymentMethod, deliveryAddress, discount = 0 } =
+      req.body;
 
-    // 1️⃣ Subtotal (sum of qty * price)
-    const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
+    const subTotal = items.reduce(
+      (sum, item) => sum + item.qty * item.price,
+      0
+    );
 
-    // 2️⃣ GST calculation
     const gst = subTotal * GST_RATE;
-
-    // 3️⃣ Grand total
     const grandTotal = subTotal - discount + gst;
 
     const newOrder = new Order({
@@ -31,74 +30,50 @@ router.post("/", async (req, res) => {
       grandTotal,
       paymentMethod,
       deliveryAddress,
+      orderStatus: "Pending",
     });
 
     await newOrder.save();
+
+    // 🔴 REAL-TIME: notify customer order placed
+    const io = req.app.get("io");
+    io.to(customerId).emit("orderPlaced", {
+      orderId: newOrder._id,
+      status: newOrder.orderStatus,
+    });
+
     res.status(201).json(newOrder);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-
-
-
-// ✅ 2. Cancel Order (Customer)
+/* =========================================================
+   2️⃣ CANCEL ORDER (CUSTOMER)
+========================================================= */
 router.patch("/:id/cancel", async (req, res) => {
   try {
-    const { customerId } = req.body; // must pass logged-in user ID
-    const order = await Order.findById(req.params.id);
+    const { customerId } = req.body;
 
+    const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
+
     if (order.customerId.toString() !== customerId)
-      return res.status(403).json({ error: "You can only cancel your own orders" });
+      return res
+        .status(403)
+        .json({ error: "You can only cancel your own orders" });
 
     if (["Completed", "Rejected"].includes(order.orderStatus))
-      return res.status(400).json({ error: "This order cannot be cancelled" });
+      return res
+        .status(400)
+        .json({ error: "This order cannot be cancelled" });
 
     order.orderStatus = "Cancelled";
     await order.save();
-    res.json(order);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
 
-// ✅ 3. Update Order Status (Admin only)
-// router.patch("/:id/status", async (req, res) => {
-//   try {
-//     const { role, status } = req.body;
-
-//     // if (role !== "admin")
-//     //   return res.status(403).json({ error: "Only admins can update order status" });
-
-//     const order = await Order.findById(req.params.id);
-//     if (!order) return res.status(404).json({ error: "Order not found" });
-
-//     order.orderStatus = status; // must be one of enum values
-//     await order.save();
-
-//     res.json(order);
-//   } catch (error) {
-//     res.status(400).json({ error: error.message });
-//   }
-// });
-router.patch("/:id/status", async (req, res) => {
-  try {
-    const { status } = req.body;
-
-    const order = await Order.findById(req.params.id);
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
-    }
-
-    order.orderStatus = status;
-    await order.save();
-
-    // 🔴 Real-time emit
+    // 🔴 REAL-TIME UPDATE
     const io = req.app.get("io");
-
-    io.emit("orderStatusUpdated", {
+    io.to(customerId).emit("orderStatusUpdated", {
       orderId: order._id,
       status: order.orderStatus,
     });
@@ -109,12 +84,40 @@ router.patch("/:id/status", async (req, res) => {
   }
 });
 
+/* =========================================================
+   3️⃣ UPDATE ORDER STATUS (ADMIN)
+========================================================= */
+router.patch("/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
 
-// ✅ 4. Get Customer Orders (filter by status)
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    order.orderStatus = status;
+    await order.save();
+
+    // 🔥 REAL-TIME: send ONLY to that customer
+    const io = req.app.get("io");
+    io.to(order.customerId.toString()).emit("orderStatusUpdated", {
+      orderId: order._id,
+      status: order.orderStatus,
+    });
+
+    res.json(order);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/* =========================================================
+   4️⃣ GET CUSTOMER ORDERS
+========================================================= */
 router.get("/customer/:customerId", async (req, res) => {
   try {
     const { customerId } = req.params;
-    const { status } = req.query; // e.g. ?status=Pending
+    const { status } = req.query;
+
     const filter = { customerId };
     if (status) filter.orderStatus = status;
 
@@ -124,47 +127,30 @@ router.get("/customer/:customerId", async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
-router.get("/customer/view/:customerId", async (req, res) => {
-  try {
-    const { customerId } = req.params;
-    // const { status } = req.query; // e.g. ?status=Pending
-    const filter = { customerId };
-   
-    const orders = await Order.find(filter).sort({ createdAt: -1 });
-    res.json(orders);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
 
-// ✅ 5. Get All Orders (Admin)
+/* =========================================================
+   5️⃣ GET ALL ORDERS (ADMIN)
+========================================================= */
 router.get("/", async (req, res) => {
   try {
-    // const { role } = req.query;
-    // if (role !== "admin")
-    //   return res.status(403).json({ error: "Only admins can view all orders" });
-
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
-// ✅ 5. Get All Orders (Admin)
-// ✅ 6. Get Order Status (for OrderSuccess screen)
+
+/* =========================================================
+   6️⃣ GET ORDER STATUS (ORDER SUCCESS SCREEN)
+========================================================= */
 router.get("/:id/status", async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).select("orderStatus");
-
-    if (!order)
-      return res.status(404).json({ error: "Order not found" });
-
+    if (!order) return res.status(404).json({ error: "Order not found" });
     res.json({ status: order.orderStatus });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-
 module.exports = router;
-

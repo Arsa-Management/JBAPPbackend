@@ -40,12 +40,18 @@ const io = new Server(server, {
 app.set("io", io);
 
 io.on("connection", (socket) => {
-  console.log("🚴 Delivery boy connected:", socket.id);
+  console.log("🟢 Socket connected:", socket.id);
+
+  socket.on("join_room", (roomId) => {
+    socket.join(roomId);
+    console.log(`🏠 Joined room: ${roomId}`);
+  });
 
   socket.on("disconnect", () => {
-    console.log("❌ Delivery boy disconnected:", socket.id);
+    console.log("🔴 Socket disconnected:", socket.id);
   });
 });
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
