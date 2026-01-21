@@ -73,7 +73,7 @@ router.get("/stats", async (req, res) => {
       foodCounts,
       customerOrderCounts
     });
-
+ console.log(customerOrderCounts,"Customer count")
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
