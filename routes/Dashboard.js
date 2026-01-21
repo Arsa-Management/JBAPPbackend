@@ -7,7 +7,7 @@ router.get("/stats", async (req, res) => {
   try {
     const orders = await Order.find();
 
-    // Count order statuses
+    // 1. Order status count
     const statusCounts = {
       Pending: 0,
       Preparing: 0,
@@ -18,26 +18,39 @@ router.get("/stats", async (req, res) => {
       Rejected: 0
     };
 
-    // Food-wise count
+    // 2. Food-wise count
     const foodCounts = {};
 
     orders.forEach(order => {
-      // 1. Count statuses
       if (statusCounts[order.orderStatus] !== undefined) {
         statusCounts[order.orderStatus]++;
       }
 
-      // 2. Count food items
       order.items.forEach(item => {
         if (!foodCounts[item.name]) foodCounts[item.name] = 0;
         foodCounts[item.name] += item.qty;
       });
     });
 
+    // 3. Customer-wise order count (AGGREGATION)
+    const customerOrderCounts = await Order.aggregate([
+      {
+        $group: {
+          _id: "$customerId",
+          customerName: { $first: "$customerName" },
+          totalOrders: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { totalOrders: -1 } // top customers first
+      }
+    ]);
+
     res.json({
       totalOrders: orders.length,
       statusCounts,
-      foodCounts
+      foodCounts,
+      customerOrderCounts
     });
 
   } catch (err) {
