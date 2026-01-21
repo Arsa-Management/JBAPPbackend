@@ -36,7 +36,7 @@ router.get("/stats", async (req, res) => {
    const customerOrderCounts = await Order.aggregate([
       {
         $group: {
-          _id: "$cid",                 // customer id
+          _id: "$customerId",                 // customer id
           totalOrders: { $sum: 1 },
           totalSpent: { $sum: "$finalTotal" },
           month: {
