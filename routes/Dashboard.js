@@ -37,7 +37,7 @@ router.get("/stats", async (req, res) => {
       {
         $group: {
           _id: "$customerId",
-          customerName: { $first: "$customerName" },
+          customerName: { $first: "$fullName" },
           totalOrders: { $sum: 1 }
         }
       },
