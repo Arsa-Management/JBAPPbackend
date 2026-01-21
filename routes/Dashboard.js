@@ -38,7 +38,7 @@ router.get("/stats", async (req, res) => {
         $group: {
           _id: "$customerId",                 // customer id
           totalOrders: { $sum: 1 },
-          totalSpent: { $sum: "$finalTotal" },
+          totalSpent: { $sum: "$grandTotal" },
           month: {
             $first: {
               $dateToString: { format: "%Y-%m", date: "$createdAt" }
