@@ -33,17 +33,38 @@ router.get("/stats", async (req, res) => {
     });
 
     // 3. Customer-wise order count (AGGREGATION)
-    const customerOrderCounts = await Order.aggregate([
+   const customerOrderCounts = await Order.aggregate([
       {
         $group: {
-          _id: "$customerId",
-          customerName: { $first: "$fullName" },
-          totalOrders: { $sum: 1 }
+          _id: "$cid",                 // customer id
+          totalOrders: { $sum: 1 },
+          totalSpent: { $sum: "$finalTotal" },
+          month: {
+            $first: {
+              $dateToString: { format: "%Y-%m", date: "$createdAt" }
+            }
+          }
         }
       },
       {
-        $sort: { totalOrders: -1 } // top customers first
-      }
+        $lookup: {
+          from: "users",               // User collection name
+          localField: "_id",
+          foreignField: "_id",
+          as: "customer"
+        }
+      },
+      { $unwind: "$customer" },
+      {
+        $project: {
+          customerId: "$_id",
+          customerName: "$customer.fullName",
+          totalOrders: 1,
+          totalSpent: 1,
+          month: 1
+        }
+      },
+      { $sort: { totalOrders: -1 } }
     ]);
 
     res.json({
