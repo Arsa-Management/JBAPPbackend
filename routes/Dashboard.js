@@ -59,6 +59,7 @@ router.get("/stats", async (req, res) => {
         $project: {
           customerId: "$_id",
           customerName: "$customer.fullName",
+          phoneno:"$customer.phone"
           totalOrders: 1,
           totalSpent: 1,
           month: 1

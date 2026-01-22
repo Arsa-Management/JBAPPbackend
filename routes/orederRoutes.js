@@ -122,7 +122,12 @@ router.get("/customer/:customerId", async (req, res) => {
     const filter = { customerId };
     if (status) filter.orderStatus = status;
 
-    const orders = await Order.find(filter).sort({ createdAt: -1 });
+     const orders = await Order.find(filter)
+      .populate({
+        path: "deliveryBoyId",
+        select: "name phone vehicleNumber",
+      })
+      .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(400).json({ error: error.message });
