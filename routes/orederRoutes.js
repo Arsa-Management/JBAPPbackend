@@ -147,16 +147,30 @@ router.get("/", async (req, res) => {
 router.get("/:id/status", async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate({
-    path: "deliveryBoyId",
-    select: "vehicleType isAvailable userId",
-    populate: {
-      path: "userId",
-      select: "fullName phone",
-    },
-  });
-      console.log("orderdetails",order);
-    if (!order) return res.status(404).json({ error: "Order not found" });
-    res.json({ status: order });
+      path: "deliveryBoyId",
+      select: "vehicleType isAvailable userId",
+      populate: {
+        path: "userId",
+        select: "fullName phone",
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.json({
+      orderId: order._id,
+      orderStatus: order.orderStatus,
+      deliveryBoy: order.deliveryBoyId
+        ? {
+            name: order.deliveryBoyId.userId?.fullName,
+            phone: order.deliveryBoyId.userId?.phone,
+            vehicleType: order.deliveryBoyId.vehicleType,
+            isAvailable: order.deliveryBoyId.isAvailable,
+          }
+        : null,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
