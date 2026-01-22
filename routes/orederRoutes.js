@@ -152,7 +152,7 @@ router.get("/:id/status", async (req, res) => {
       });
       console.log("orderdetails",order);
     if (!order) return res.status(404).json({ error: "Order not found" });
-    res.json({ status: order.orderStatus });
+    res.json({ status: order });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
