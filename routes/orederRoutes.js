@@ -146,7 +146,7 @@ router.get("/", async (req, res) => {
 ========================================================= */
 router.get("/:id/status", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).select("orderStatus deliveryBoyId").populate({
+    const order = await Order.findById(req.params.id).populate({
         path: "deliveryBoyId",
         select: "name phone vehicleNumber",
       });
