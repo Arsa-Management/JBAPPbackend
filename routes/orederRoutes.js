@@ -122,12 +122,7 @@ router.get("/customer/:customerId", async (req, res) => {
     const filter = { customerId };
     if (status) filter.orderStatus = status;
 
-     const orders = await Order.find(filter)
-      .populate({
-        path: "deliveryBoyId",
-        select: "name phone vehicleNumber",
-      })
-      .sort({ createdAt: -1 });
+     const orders = await Order.find(filter).sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -151,7 +146,10 @@ router.get("/", async (req, res) => {
 ========================================================= */
 router.get("/:id/status", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).select("orderStatus");
+    const order = await Order.findById(req.params.id).select("orderStatus").  .populate({
+        path: "deliveryBoyId",
+        select: "name phone vehicleNumber",
+      });
     if (!order) return res.status(404).json({ error: "Order not found" });
     res.json({ status: order.orderStatus });
   } catch (error) {
