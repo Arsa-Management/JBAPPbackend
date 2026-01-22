@@ -150,6 +150,7 @@ router.get("/:id/status", async (req, res) => {
         path: "deliveryBoyId",
         select: "name phone vehicleNumber",
       });
+      console.log("orderdetails",order);
     if (!order) return res.status(404).json({ error: "Order not found" });
     res.json({ status: order.orderStatus });
   } catch (error) {
