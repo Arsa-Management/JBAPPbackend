@@ -151,7 +151,7 @@ router.get("/:id/status", async (req, res) => {
     select: "vehicleType isAvailable userId",
     populate: {
       path: "userId",
-      select: "name phone",
+      select: "fullName phone",
     },
   });
       console.log("orderdetails",order);
