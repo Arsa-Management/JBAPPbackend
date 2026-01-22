@@ -60,7 +60,7 @@ router.get("/stats", async (req, res) => {
           customerId: "$_id",
           customerName: "$customer.fullName",
           phoneno:"$customer.phone"
-          totalOrders: 1,
+          totalOrders: 0,
           totalSpent: 1,
           month: 1
         }
