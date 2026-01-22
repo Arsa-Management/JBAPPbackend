@@ -147,9 +147,13 @@ router.get("/", async (req, res) => {
 router.get("/:id/status", async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate({
-        path: "deliveryBoyId",
-        select: "name phone vehicleNumber",
-      });
+    path: "deliveryBoyId",
+    select: "vehicleType isAvailable userId",
+    populate: {
+      path: "userId",
+      select: "name phone",
+    },
+  });
       console.log("orderdetails",order);
     if (!order) return res.status(404).json({ error: "Order not found" });
     res.json({ status: order });
