@@ -159,7 +159,7 @@ router.get("/:id/status", async (req, res) => {
         select: "fullName phone",
       },
     });
-
+    console.log(order);
     if (!order) return res.status(404).json({ error: "Order not found" });
 
     res.json({
