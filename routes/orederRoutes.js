@@ -93,40 +93,27 @@ router.patch("/:id/status", async (req, res) => {
         select: "fullName phone",
       },
     });
-
-    if (!order) {
-      console.log("❌ Order not found");
-      return res.status(404).json({ error: "Order not found" });
-    }
+    console.log(order)
+    if (!order) return res.status(404).json({ error: "Order not found" });
 
     const io = req.app.get("io");
-
-    // 🔍 DEBUG
-    console.log("📡 EMIT DATA:");
-    console.log({
-      orderId: order._id.toString(),
-      status: order.orderStatus,
-      deliveryBoy: order.deliveryBoyId,
-    });
-
-    io.to(order.customerId.toString()).emit("orderStatusUpdated", {
+    io.to(order._id.toString()).emit("orderStatusUpdated", {
       orderId: order._id.toString(),
       status: order.orderStatus,
       deliveryBoy: order.deliveryBoyId
         ? {
-            name: order.deliveryBoyId.userId.fullName,
-            phone: order.deliveryBoyId.userId.phone,
-          }
+          name: order.deliveryBoyId.userId.fullName,
+          phone: order.deliveryBoyId.userId.phone,
+          vehicleType: order.deliveryBoyId.vehicleType,
+        }
         : null,
     });
 
     res.json(order);
   } catch (error) {
-    console.error("❌ Status update error:", error);
     res.status(400).json({ error: error.message });
   }
 });
-
 
 /* =========================================================
    4️⃣ GET CUSTOMER ORDERS
