@@ -199,26 +199,24 @@ router.get("/", async (req, res) => {
 ========================================================= */
 router.get("/:id/status", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate({
-      path: "deliveryBoyId",
-      populate: {
-        path: "userId",
-        select: "fullName phone",
-      },
-    });
+   const order = await Order.findById(req.params.id).populate({
+  path: "deliveryBoyId",
+  model: "User",
+  select: "fullName phone",
+});
 
     if (!order) return res.status(404).json({ error: "Order not found" });
 
-    res.json({
-      status: order.orderStatus,
-      deliveryBoy: order.deliveryBoyId
-        ? {
-            name: order.deliveryBoyId.userId.fullName,
-            phone: order.deliveryBoyId.userId.phone,
-            vehicleType: order.deliveryBoyId.vehicleType,
-          }
-        : null,
-    });
+   res.json({
+  status: order.orderStatus,
+  deliveryBoy: order.deliveryBoyId
+    ? {
+        name: order.deliveryBoyId.fullName,
+        phone: order.deliveryBoyId.phone,
+      }
+    : null,
+});
+
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
