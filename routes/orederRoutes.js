@@ -97,17 +97,23 @@ router.patch("/:id/status", async (req, res) => {
     if (!order) return res.status(404).json({ error: "Order not found" });
 
     const io = req.app.get("io");
-    io.to(order._id.toString()).emit("orderStatusUpdated", {
-      orderId: order._id.toString(),
-      status: order.orderStatus,
-      deliveryBoy: order.deliveryBoyId
-        ? {
-          name: order.deliveryBoyId.userId.fullName,
-          phone: order.deliveryBoyId.userId.phone,
-          vehicleType: order.deliveryBoyId.vehicleType,
-        }
-        : null,
-    });
+    
+console.log("🔥 STATUS UPDATE API HIT");
+console.log("➡️ ORDER ID:", order._id.toString());
+console.log("➡️ CUSTOMER ROOM:", order.customerId.toString());
+
+    io.to(order.customerId.toString()).emit("orderStatusUpdated", {
+  orderId: order._id.toString(),
+  status: order.orderStatus,
+  deliveryBoy: order.deliveryBoyId
+    ? {
+        name: order.deliveryBoyId.userId.fullName,
+        phone: order.deliveryBoyId.userId.phone,
+      }
+    : null,
+});
+
+console.log("📡 SOCKET EMIT DONE");
 
     res.json(order);
   } catch (error) {
