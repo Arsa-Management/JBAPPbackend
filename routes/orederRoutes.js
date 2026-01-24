@@ -78,6 +78,11 @@ router.patch("/:id/cancel", async (req, res) => {
 router.patch("/:id/status", async (req, res) => {
   try {
     console.log("🔥 update order status API called");
+const oldOrder = await Order.findById(req.params.id);
+console.log(
+  "🔎 BEFORE UPDATE - deliveryBoyId:",
+  oldOrder
+);
 
     const { status, deliveryBoyId } = req.body;
 
