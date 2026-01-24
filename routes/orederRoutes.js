@@ -77,7 +77,8 @@ router.patch("/:id/cancel", async (req, res) => {
 ========================================================= */
 router.patch("/:id/status", async (req, res) => {
   try {
-    console.log("update order status")
+    console.log("🔥 update order status API called");
+
     const { status, deliveryBoyId } = req.body;
 
     const order = await Order.findByIdAndUpdate(
@@ -94,33 +95,52 @@ router.patch("/:id/status", async (req, res) => {
         select: "fullName phone",
       },
     });
-    console.log("dname",order.deliveryBoyId.userId.fullName)
-    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    if (!order) {
+      console.log("❌ Order not found");
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // ✅ DELIVERY BOY LOG (THIS IS WHAT YOU WANT)
+    if (order.deliveryBoyId?.userId) {
+      console.log(
+        "🚴 DELIVERY BOY NAME:",
+        order.deliveryBoyId.userId.fullName
+      );
+      console.log(
+        "📞 DELIVERY BOY PHONE:",
+        order.deliveryBoyId.userId.phone
+      );
+    } else {
+      console.log("ℹ️ DELIVERY BOY NOT ASSIGNED");
+    }
 
     const io = req.app.get("io");
-    
-console.log("🔥 STATUS UPDATE API HIT");
-console.log("➡️ ORDER ID:", order._id.toString());
-console.log("➡️ CUSTOMER ROOM:", order.customerId.toString());
+    const roomId = order.customerId.toString();
 
-    io.to(order.customerId.toString()).emit("orderStatusUpdated", {
-  orderId: order._id.toString(),
-  status: order.orderStatus,
-  deliveryBoy: order.deliveryBoyId
-    ? {
-        name: order.deliveryBoyId.userId.fullName,
-        phone: order.deliveryBoyId.userId.phone,
-      }
-    : null,
-});
+    console.log("➡️ ORDER ID:", order._id.toString());
+    console.log("➡️ EMITTING TO CUSTOMER ROOM:", roomId);
 
-console.log("📡 SOCKET EMIT DONE");
+    io.to(roomId).emit("orderStatusUpdated", {
+      orderId: order._id.toString(),
+      status: order.orderStatus,
+      deliveryBoy: order.deliveryBoyId
+        ? {
+            name: order.deliveryBoyId.userId.fullName,
+            phone: order.deliveryBoyId.userId.phone,
+          }
+        : null,
+    });
+
+    console.log("📡 SOCKET EMIT DONE");
 
     res.json(order);
   } catch (error) {
+    console.error("❌ ERROR:", error);
     res.status(400).json({ error: error.message });
   }
 });
+
 
 /* =========================================================
    4️⃣ GET CUSTOMER ORDERS
