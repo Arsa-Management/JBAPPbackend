@@ -77,6 +77,7 @@ router.patch("/:id/cancel", async (req, res) => {
 ========================================================= */
 router.patch("/:id/status", async (req, res) => {
   try {
+    console.log("update order status")
     const { status, deliveryBoyId } = req.body;
 
     const order = await Order.findByIdAndUpdate(
