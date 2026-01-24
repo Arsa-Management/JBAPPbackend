@@ -102,10 +102,10 @@ router.patch("/:id/status", async (req, res) => {
       status: order.orderStatus,
       deliveryBoy: order.deliveryBoyId
         ? {
-            name: order.deliveryBoyId.userId.fullName,
-            phone: order.deliveryBoyId.userId.phone,
-            vehicleType: order.deliveryBoyId.vehicleType,
-          }
+          name: order.deliveryBoyId.userId.fullName,
+          phone: order.deliveryBoyId.userId.phone,
+          vehicleType: order.deliveryBoyId.vehicleType,
+        }
         : null,
     });
 
@@ -134,10 +134,10 @@ router.get("/customer/:customerId", async (req, res) => {
       ...order.toObject(),
       deliveryBoy: order.deliveryBoyId
         ? {
-            name: order.deliveryBoyId.userId.fullName,
-            phone: order.deliveryBoyId.userId.phone,
-            vehicleType: order.deliveryBoyId.vehicleType,
-          }
+          name: order.deliveryBoyId.userId.fullName,
+          phone: order.deliveryBoyId.userId.phone,
+          vehicleType: order.deliveryBoyId.vehicleType,
+        }
         : null,
     }));
 
@@ -166,15 +166,24 @@ router.get("/:id/status", async (req, res) => {
       status: order.orderStatus,
       deliveryBoy: order.deliveryBoyId
         ? {
-            name: order.deliveryBoyId.userId.fullName,
-            phone: order.deliveryBoyId.userId.phone,
-            vehicleType: order.deliveryBoyId.vehicleType,
-          }
+          name: order.deliveryBoyId.userId.fullName,
+          phone: order.deliveryBoyId.userId.phone,
+          vehicleType: order.deliveryBoyId.vehicleType,
+        }
         : null,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
-
+/* ========================================================= 5️⃣ GET ALL ORDERS (ADMIN) ========================================================= */
+router.get("/", async (req, res) => { 
+  try { 
+    const orders = await Order.find()
+    .populate({ path: "deliveryBoyId", 
+      populate: { path: "userId", select: "fullName phone", }, })
+      .sort({ createdAt: -1 });
+       res.json(orders); } 
+       catch (error) { res.status(400).json({ error: error.message });
+       } });
 module.exports = router;
