@@ -10,8 +10,13 @@ const GST_RATE = 0.18;
 ========================================================= */
 router.post("/", async (req, res) => {
   try {
-    const { customerId, items, paymentMethod, deliveryAddress, discount = 0 } =
-      req.body;
+    const {
+      customerId,
+      items,
+      paymentMethod,
+      deliveryAddress,
+      discount = 0,
+    } = req.body;
 
     const subTotal = items.reduce(
       (sum, item) => sum + item.qty * item.price,
@@ -35,9 +40,9 @@ router.post("/", async (req, res) => {
 
     await newOrder.save();
 
-    // 🔴 REAL-TIME: notify customer order placed
+    // 🔴 REAL-TIME: notify customer (room = customerId)
     const io = req.app.get("io");
-    io.to(customerId).emit("orderPlaced", {
+    io.to(customerId.toString()).emit("orderPlaced", {
       orderId: newOrder._id,
       status: newOrder.orderStatus,
     });
@@ -45,7 +50,6 @@ router.post("/", async (req, res) => {
     res.status(201).json(newOrder);
   } catch (error) {
     res.status(400).json({ error: error.message });
-    
   }
 });
 
@@ -74,9 +78,10 @@ router.patch("/:id/cancel", async (req, res) => {
 
     // 🔴 REAL-TIME UPDATE
     const io = req.app.get("io");
-    io.to(customerId).emit("orderStatusUpdated", {
+    io.to(customerId.toString()).emit("orderStatusUpdated", {
       orderId: order._id,
       status: order.orderStatus,
+      deliveryBoy: null,
     });
 
     res.json(order);
@@ -86,23 +91,41 @@ router.patch("/:id/cancel", async (req, res) => {
 });
 
 /* =========================================================
-   3️⃣ UPDATE ORDER STATUS (ADMIN)
+   3️⃣ UPDATE ORDER STATUS / ASSIGN DELIVERY BOY (ADMIN)
 ========================================================= */
 router.patch("/:id/status", async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, deliveryBoyId } = req.body;
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        orderStatus: status,
+        ...(deliveryBoyId && { deliveryBoyId }),
+      },
+      { new: true }
+    ).populate({
+      path: "deliveryBoyId",
+      populate: {
+        path: "userId",
+        select: "fullName phone",
+      },
+    });
+
     if (!order) return res.status(404).json({ error: "Order not found" });
 
-    order.orderStatus = status;
-    await order.save();
-
-    // 🔥 REAL-TIME: send ONLY to that customer
+    // 🔥 REAL-TIME UPDATE TO CUSTOMER
     const io = req.app.get("io");
     io.to(order.customerId.toString()).emit("orderStatusUpdated", {
       orderId: order._id,
       status: order.orderStatus,
+      deliveryBoy: order.deliveryBoyId
+        ? {
+            name: order.deliveryBoyId.userId.fullName,
+            phone: order.deliveryBoyId.userId.phone,
+            vehicleType: order.deliveryBoyId.vehicleType,
+          }
+        : null,
     });
 
     res.json(order);
@@ -122,8 +145,29 @@ router.get("/customer/:customerId", async (req, res) => {
     const filter = { customerId };
     if (status) filter.orderStatus = status;
 
-     const orders = await Order.find(filter).sort({ createdAt: -1 });
-    res.json(orders);
+    const orders = await Order.find(filter)
+      .populate({
+        path: "deliveryBoyId",
+        populate: {
+          path: "userId",
+          select: "fullName phone",
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    // 🔁 Clean response
+    const response = orders.map((order) => ({
+      ...order.toObject(),
+      deliveryBoy: order.deliveryBoyId
+        ? {
+            name: order.deliveryBoyId.userId.fullName,
+            phone: order.deliveryBoyId.userId.phone,
+            vehicleType: order.deliveryBoyId.vehicleType,
+          }
+        : null,
+    }));
+
+    res.json(response);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -134,7 +178,16 @@ router.get("/customer/:customerId", async (req, res) => {
 ========================================================= */
 router.get("/", async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find()
+      .populate({
+        path: "deliveryBoyId",
+        populate: {
+          path: "userId",
+          select: "fullName phone",
+        },
+      })
+      .sort({ createdAt: -1 });
+
     res.json(orders);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -144,49 +197,31 @@ router.get("/", async (req, res) => {
 /* =========================================================
    6️⃣ GET ORDER STATUS (ORDER SUCCESS SCREEN)
 ========================================================= */
-// router.get("/:id/status", async (req, res) => {
-//   try {
-//     const order = await Order.findById(req.params.id).populate({
-//       path: "deliveryBoyId",
-//       select: "vehicleType isAvailable userId",
-//       populate: {
-//         path: "userId",
-//         select: "fullName phone",
-//       },
-//     });
-
-//     if (!order) {
-//       return res.status(404).json({ error: "Order not found" });
-//     }
-
-//     res.json({
-//       orderId: order._id,
-//       orderStatus: order.orderStatus,
-//       deliveryBoy: order.deliveryBoyId
-//         ? {
-//             name: order.deliveryBoyId.userId?.fullName,
-//             phone: order.deliveryBoyId.userId?.phone,
-//             vehicleType: order.deliveryBoyId.vehicleType,
-//             isAvailable: order.deliveryBoyId.isAvailable,
-//           }
-//         : null,
-//     });
-//   } catch (error) {
-//     res.status(400).json({ error: error.message });
-//   }
-// });
 router.get("/:id/status", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).select("orderStatus");
+    const order = await Order.findById(req.params.id).populate({
+      path: "deliveryBoyId",
+      populate: {
+        path: "userId",
+        select: "fullName phone",
+      },
+    });
 
-    if (!order)
-      return res.status(404).json({ error: "Order not found" });
+    if (!order) return res.status(404).json({ error: "Order not found" });
 
-    res.json({ status: order.orderStatus });
+    res.json({
+      status: order.orderStatus,
+      deliveryBoy: order.deliveryBoyId
+        ? {
+            name: order.deliveryBoyId.userId.fullName,
+            phone: order.deliveryBoyId.userId.phone,
+            vehicleType: order.deliveryBoyId.vehicleType,
+          }
+        : null,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
-
 
 module.exports = router;
