@@ -79,7 +79,7 @@ router.patch("/:id/status", async (req, res) => {
   try {
     const { status, deliveryBoyId } = req.body;
 
-  const order = await Order.findByIdAndUpdate(
+    const order = await Order.findByIdAndUpdate(
       req.params.id,
       {
         orderStatus: status,
@@ -93,7 +93,7 @@ router.patch("/:id/status", async (req, res) => {
         select: "fullName phone",
       },
     });
-
+    console.log(order)
     if (!order) return res.status(404).json({ error: "Order not found" });
 
     const io = req.app.get("io");
@@ -159,7 +159,7 @@ router.get("/:id/status", async (req, res) => {
         select: "fullName phone",
       },
     });
-    console.log(order);
+    console.log(order)
     if (!order) return res.status(404).json({ error: "Order not found" });
 
     res.json({
