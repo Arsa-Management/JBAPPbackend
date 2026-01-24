@@ -93,7 +93,7 @@ router.patch("/:id/status", async (req, res) => {
         select: "fullName phone",
       },
     });
-    console.log(order.deliveryBoyId.userId.fullName,)
+    console.log(order)
     if (!order) return res.status(404).json({ error: "Order not found" });
 
     const io = req.app.get("io");
