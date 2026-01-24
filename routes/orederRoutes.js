@@ -2,11 +2,10 @@ const express = require("express");
 const Order = require("../models/Order");
 const router = express.Router();
 
-// GST rate
 const GST_RATE = 0.18;
 
 /* =========================================================
-   1️⃣ PLACE ORDER (CUSTOMER)
+   1️⃣ PLACE ORDER
 ========================================================= */
 router.post("/", async (req, res) => {
   try {
@@ -40,13 +39,6 @@ router.post("/", async (req, res) => {
 
     await newOrder.save();
 
-    // 🔴 REAL-TIME: notify customer (room = customerId)
-    const io = req.app.get("io");
-    io.to(customerId.toString()).emit("orderPlaced", {
-      orderId: newOrder._id,
-      status: newOrder.orderStatus,
-    });
-
     res.status(201).json(newOrder);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -54,7 +46,7 @@ router.post("/", async (req, res) => {
 });
 
 /* =========================================================
-   2️⃣ CANCEL ORDER (CUSTOMER)
+   2️⃣ CANCEL ORDER
 ========================================================= */
 router.patch("/:id/cancel", async (req, res) => {
   try {
@@ -63,23 +55,13 @@ router.patch("/:id/cancel", async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
 
-    if (order.customerId.toString() !== customerId)
-      return res
-        .status(403)
-        .json({ error: "You can only cancel your own orders" });
-
-    if (["Completed", "Rejected"].includes(order.orderStatus))
-      return res
-        .status(400)
-        .json({ error: "This order cannot be cancelled" });
-
     order.orderStatus = "Cancelled";
     await order.save();
 
-    // 🔴 REAL-TIME UPDATE
+    // ✅ emit to ORDER ID room
     const io = req.app.get("io");
-    io.to(customerId.toString()).emit("orderStatusUpdated", {
-      orderId: order._id,
+    io.to(order._id.toString()).emit("orderStatusUpdated", {
+      orderId: order._id.toString(),
       status: order.orderStatus,
       deliveryBoy: null,
     });
@@ -91,7 +73,7 @@ router.patch("/:id/cancel", async (req, res) => {
 });
 
 /* =========================================================
-   3️⃣ UPDATE ORDER STATUS / ASSIGN DELIVERY BOY (ADMIN)
+   3️⃣ UPDATE ORDER STATUS / ASSIGN DELIVERY BOY
 ========================================================= */
 router.patch("/:id/status", async (req, res) => {
   try {
@@ -114,10 +96,9 @@ router.patch("/:id/status", async (req, res) => {
 
     if (!order) return res.status(404).json({ error: "Order not found" });
 
-    // 🔥 REAL-TIME UPDATE TO CUSTOMER
     const io = req.app.get("io");
-    io.to(order.customerId.toString()).emit("orderStatusUpdated", {
-      orderId: order._id,
+    io.to(order._id.toString()).emit("orderStatusUpdated", {
+      orderId: order._id.toString(),
       status: order.orderStatus,
       deliveryBoy: order.deliveryBoyId
         ? {
@@ -139,13 +120,7 @@ router.patch("/:id/status", async (req, res) => {
 ========================================================= */
 router.get("/customer/:customerId", async (req, res) => {
   try {
-    const { customerId } = req.params;
-    const { status } = req.query;
-
-    const filter = { customerId };
-    if (status) filter.orderStatus = status;
-
-    const orders = await Order.find(filter)
+    const orders = await Order.find({ customerId: req.params.customerId })
       .populate({
         path: "deliveryBoyId",
         populate: {
@@ -155,7 +130,6 @@ router.get("/customer/:customerId", async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    // 🔁 Clean response
     const response = orders.map((order) => ({
       ...order.toObject(),
       deliveryBoy: order.deliveryBoyId
@@ -174,49 +148,30 @@ router.get("/customer/:customerId", async (req, res) => {
 });
 
 /* =========================================================
-   5️⃣ GET ALL ORDERS (ADMIN)
-========================================================= */
-router.get("/", async (req, res) => {
-  try {
-    const orders = await Order.find()
-      .populate({
-        path: "deliveryBoyId",
-        populate: {
-          path: "userId",
-          select: "fullName phone",
-        },
-      })
-      .sort({ createdAt: -1 });
-
-    res.json(orders);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-/* =========================================================
-   6️⃣ GET ORDER STATUS (ORDER SUCCESS SCREEN)
+   5️⃣ GET ORDER STATUS (SUCCESS SCREEN)
 ========================================================= */
 router.get("/:id/status", async (req, res) => {
   try {
-   const order = await Order.findById(req.params.id).populate({
-  path: "deliveryBoyId",
-  model: "User",
-  select: "fullName phone",
-});
+    const order = await Order.findById(req.params.id).populate({
+      path: "deliveryBoyId",
+      populate: {
+        path: "userId",
+        select: "fullName phone",
+      },
+    });
 
     if (!order) return res.status(404).json({ error: "Order not found" });
 
-   res.json({
-  status: order.orderStatus,
-  deliveryBoy: order.deliveryBoyId
-    ? {
-        name: order.deliveryBoyId.fullName,
-        phone: order.deliveryBoyId.phone,
-      }
-    : null,
-});
-
+    res.json({
+      status: order.orderStatus,
+      deliveryBoy: order.deliveryBoyId
+        ? {
+            name: order.deliveryBoyId.userId.fullName,
+            phone: order.deliveryBoyId.userId.phone,
+            vehicleType: order.deliveryBoyId.vehicleType,
+          }
+        : null,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
