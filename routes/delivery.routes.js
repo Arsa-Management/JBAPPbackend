@@ -46,7 +46,7 @@ router.put("/delivery/order-status", async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Status validation
+    // ✅ Status validation
     const allowed = ["Out for delivery", "Delivered"];
     if (!allowed.includes(status)) {
       return res.status(400).json({ message: "Invalid status update" });
@@ -54,7 +54,7 @@ router.put("/delivery/order-status", async (req, res) => {
 
     order.orderStatus = status;
 
-    // When delivered → free delivery boy
+    // ✅ Free delivery boy after delivery
     if (status === "Delivered" && order.deliveryBoyId) {
       await Delivery.findByIdAndUpdate(order.deliveryBoyId, {
         isAvailable: true,
@@ -62,29 +62,41 @@ router.put("/delivery/order-status", async (req, res) => {
     }
 
     await order.save();
- /* 🔥 SOCKET EMIT (MOST IMPORTANT PART) */
+
+    /* 🔥 SOCKET EMIT */
     const io = req.app.get("io");
 
-    // Emit ONLY to that customer (room = customerId)
-    io.to(order.customerId.toString()).emit("orderStatusUpdated", {
+    // ✅ Emit to CUSTOMER ROOM (IMPORTANT FIX)
+    io.to(`customer_${order.customerId.toString()}`).emit(
+      "orderStatusUpdated",
+      {
+        orderId: order._id.toString(),
+        status: order.orderStatus,
+      }
+    );
+
+    // 🔔 OPTIONAL: notify admin
+    io.to("admin").emit("adminOrderUpdate", {
       orderId: order._id.toString(),
       status: order.orderStatus,
     });
 
     console.log(
-      "📡 Socket emitted →",
+      "📡 Socket emitted → customer_",
       order.customerId.toString(),
       order.orderStatus
     );
+
     res.json({
       message: `Order marked as ${status}`,
       order,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Delivery status update error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // Singel Order Fetch
 router.get(

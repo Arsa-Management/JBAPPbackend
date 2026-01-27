@@ -38,7 +38,8 @@ router.post("/", async (req, res) => {
     });
 
     await newOrder.save();
-
+     const io = req.app.get("io");
+  io.to("admin").emit("newOrder", order);
     res.status(201).json(newOrder);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -78,8 +79,6 @@ router.patch("/:id/cancel", async (req, res) => {
 router.patch("/:id/status", async (req, res) => {
   try {
     console.log("🔥 update order status API called");
-const oldOrder = await Order.findById(req.params.id);
-
 
     const { status, deliveryBoyId } = req.body;
 
@@ -99,31 +98,50 @@ const oldOrder = await Order.findById(req.params.id);
     });
 
     if (!order) {
-      console.log("❌ Order not found");
       return res.status(404).json({ error: "Order not found" });
     }
 
-   // ✅ DELIVERY BOY LOG (THIS IS WHAT YOU WANT)
-   
-
+    // ✅ GET SOCKET INSTANCE (🔥 REQUIRED)
     const io = req.app.get("io");
-    const roomId = order.customerId.toString();
 
-    console.log("➡️ ORDER ID:", order._id.toString());
-    console.log("➡️ EMITTING TO CUSTOMER ROOM:", roomId);
+    /* ==========================
+       CUSTOMER REAL-TIME UPDATE
+       ========================== */
+    io.to(`customer_${order.customerId.toString()}`).emit(
+      "orderStatusUpdated",
+      {
+        orderId: order._id.toString(),
+        status: order.orderStatus,
+        deliveryBoy: order.deliveryBoyId
+          ? {
+              name: order.deliveryBoyId.userId.fullName,
+              phone: order.deliveryBoyId.userId.phone,
+            }
+          : null,
+      }
+    );
 
-    io.to(roomId).emit("orderStatusUpdated", {
+    /* ==========================
+       DELIVERY BOY NOTIFICATION
+       ========================== */
+    if (order.deliveryBoyId) {
+      io.to(`delivery_${order.deliveryBoyId._id.toString()}`).emit(
+        "orderAssigned",
+        {
+          orderId: order._id.toString(),
+          status: order.orderStatus,
+        }
+      );
+    }
+
+    /* ==========================
+       ADMIN REAL-TIME UPDATE
+       ========================== */
+    io.to("admin").emit("adminOrderUpdate", {
       orderId: order._id.toString(),
       status: order.orderStatus,
-      deliveryBoy: order.deliveryBoyId
-        ? {
-            name: order.deliveryBoyId.userId.fullName,
-            phone: order.deliveryBoyId.userId.phone,
-          }
-        : null,
+      deliveryBoyId: order.deliveryBoyId?._id || null,
     });
-
-    console.log("📡 SOCKET EMIT DONE");
 
     res.json(order);
   } catch (error) {
