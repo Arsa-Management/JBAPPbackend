@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
 
     // 🔥 SOCKET: notify admin of new order
     const io = req.app.get("io");
-    io.to("admin").emit("newOrder", {
+    io.to("admin").emit("adminOrderUpdate", {
       orderId: newOrder._id.toString(),
       status: newOrder.orderStatus,
       total: newOrder.grandTotal,
