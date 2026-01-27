@@ -39,12 +39,31 @@ const io = new Server(server, {
 // 🔥 THIS IS THE KEY LINE
 app.set("io", io);
 
+// io.on("connection", (socket) => {
+//   console.log("🟢 Socket connected:", socket.id);
+
+//   socket.on("join_room", (roomId) => {
+//     socket.join(roomId);
+//     console.log(`🏠 Joined room: ${roomId}`);
+//   });
+
+//   socket.on("disconnect", () => {
+//     console.log("🔴 Socket disconnected:", socket.id);
+//   });
+// });
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
-  socket.on("join_room", (roomId) => {
-    socket.join(roomId);
-    console.log(`🏠 Joined room: ${roomId}`);
+  socket.on("joinCustomer", (customerId) => {
+    socket.join(`customer_${customerId}`);
+  });
+
+  socket.on("joinDelivery", (deliveryBoyId) => {
+    socket.join(`delivery_${deliveryBoyId}`);
+  });
+
+  socket.on("joinAdmin", () => {
+    socket.join("admin");
   });
 
   socket.on("disconnect", () => {
