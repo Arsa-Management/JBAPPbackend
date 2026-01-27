@@ -55,21 +55,34 @@ io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
   socket.on("joinCustomer", (customerId) => {
+    socket.role = "customer";       // 👈 STORE ROLE
+    socket.userId = customerId;     // 👈 STORE USER ID
     socket.join(`customer_${customerId}`);
+
+    console.log("👤 Customer connected:", customerId);
   });
 
   socket.on("joinDelivery", (deliveryBoyId) => {
+    socket.role = "delivery";
+    socket.userId = deliveryBoyId;
     socket.join(`delivery_${deliveryBoyId}`);
+
+    console.log("🚚 Delivery connected:", deliveryBoyId);
   });
 
   socket.on("joinAdmin", () => {
+    socket.role = "admin";
     socket.join("admin");
+    console.log("👑 Admin connected");
   });
 
   socket.on("disconnect", () => {
-    console.log("🔴 Socket disconnected:", socket.id);
+    console.log(
+      `🔴 Disconnected socket=${socket.id}, role=${socket.role}, user=${socket.userId}`
+    );
   });
 });
+
 
 
 const PORT = process.env.PORT || 5000;
