@@ -38,13 +38,22 @@ router.post("/", async (req, res) => {
     });
 
     await newOrder.save();
-     const io = req.app.get("io");
-  io.to("admin").emit("newOrder", order);
+
+    // 🔥 SOCKET: notify admin of new order
+    const io = req.app.get("io");
+    io.to("admin").emit("newOrder", {
+      orderId: newOrder._id.toString(),
+      status: newOrder.orderStatus,
+      total: newOrder.grandTotal,
+    });
+
     res.status(201).json(newOrder);
   } catch (error) {
+    console.error("❌ Order create error:", error);
     res.status(400).json({ error: error.message });
   }
 });
+
 
 /* =========================================================
    2️⃣ CANCEL ORDER
