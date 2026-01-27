@@ -79,10 +79,7 @@ router.patch("/:id/status", async (req, res) => {
   try {
     console.log("🔥 update order status API called");
 const oldOrder = await Order.findById(req.params.id);
-console.log(
-  "🔎 BEFORE UPDATE - deliveryBoyId:",
-  oldOrder
-);
+
 
     const { status, deliveryBoyId } = req.body;
 
@@ -106,19 +103,8 @@ console.log(
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // ✅ DELIVERY BOY LOG (THIS IS WHAT YOU WANT)
-    if (order.deliveryBoyId?.userId) {
-      console.log(
-        "🚴 DELIVERY BOY NAME:",
-        order.deliveryBoyId.userId.fullName
-      );
-      console.log(
-        "📞 DELIVERY BOY PHONE:",
-        order.deliveryBoyId.userId.phone
-      );
-    } else {
-      console.log("ℹ️ DELIVERY BOY NOT ASSIGNED");
-    }
+   // ✅ DELIVERY BOY LOG (THIS IS WHAT YOU WANT)
+   
 
     const io = req.app.get("io");
     const roomId = order.customerId.toString();
