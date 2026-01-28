@@ -49,6 +49,8 @@ router.get(
     } catch (error) {
       console.error("❌ my-orders error:", error);
       res.status(500).json({ message: "Server error" });
+      console.log("error",error);
+      
     }
   }
 );
