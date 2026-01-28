@@ -163,34 +163,46 @@ router.patch("/:id/status", async (req, res) => {
 /* =========================================================
    4️⃣ GET CUSTOMER ORDERS
 ========================================================= */
-router.get("/customer/:customerId", async (req, res) => {
-  try {
-    const orders = await Order.find({ customerId: req.params.customerId })
-      .populate({
-        path: "deliveryBoyId",
-        populate: {
-          path: "userId",
-          select: "fullName phone",
-        },
+router.get(
+  "/customer/:customerId",
+  auth(["customer"]), // 👈 allow ONLY customer
+  async (req, res) => {
+    try {
+      // 🔒 customer can access ONLY their own orders
+      if (req.user.id !== req.params.customerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const orders = await Order.find({
+        customerId: req.params.customerId,
       })
-      .sort({ createdAt: -1 });
+        .populate({
+          path: "deliveryBoyId",
+          populate: {
+            path: "userId",
+            select: "fullName phone",
+          },
+        })
+        .sort({ createdAt: -1 });
 
-    const response = orders.map((order) => ({
-      ...order.toObject(),
-      deliveryBoy: order.deliveryBoyId
-        ? {
-          name: order.deliveryBoyId.userId.fullName,
-          phone: order.deliveryBoyId.userId.phone,
-          vehicleType: order.deliveryBoyId.vehicleType,
-        }
-        : null,
-    }));
+      const response = orders.map((order) => ({
+        ...order.toObject(),
+        deliveryBoy: order.deliveryBoyId
+          ? {
+              name: order.deliveryBoyId.userId.fullName,
+              phone: order.deliveryBoyId.userId.phone,
+              vehicleType: order.deliveryBoyId.vehicleType,
+            }
+          : null,
+      }));
 
-    res.json(response);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
-});
+);
+
 
 /* =========================================================
    5️⃣ GET ORDER STATUS (SUCCESS SCREEN)
