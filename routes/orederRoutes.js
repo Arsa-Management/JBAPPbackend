@@ -1,7 +1,7 @@
 const express = require("express");
 const Order = require("../models/Order");
 const router = express.Router();
-
+const auth = require("../middleware/auth")
 const GST_RATE = 0.18;
 
 /* =========================================================
