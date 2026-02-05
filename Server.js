@@ -13,6 +13,13 @@ app.use(cors());
 // DB
 const connectdb = require("./Database/Connetion");
 // connectdb();
+app.get("/payment-success", (req, res) => {
+  res.send("Payment success");
+});
+
+app.get("/payment-failed", (req, res) => {
+  res.send("Payment failed");
+});
 
 // Routes
 app.use("/api/users", require("./routes/userRoutes"));
