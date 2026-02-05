@@ -106,7 +106,7 @@ router.post("/verify", async (req, res) => {
       grandTotal,
       paymentMethod,
       paymentStatus: "Paid",
-      orderStatus: "Completed",
+      orderStatus: "Pending",
       deliveryAddress,
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
