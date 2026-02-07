@@ -67,7 +67,8 @@ router.post("/", async (req, res) => {
       error: err.message,
     });
   }
-}); Login User / Delivery Boy
+}); 
+// Login User / Delivery Boy
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
