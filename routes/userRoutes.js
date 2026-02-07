@@ -5,7 +5,7 @@ const DeliveryBoy = require("../models/DeliveryBoy");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-onst validatePassword = (password) => {
+const validatePassword = (password) => {
   if (!password || password.length < 8)
     return "Password must be at least 8 characters";
   if (!/[A-Z]/.test(password))
