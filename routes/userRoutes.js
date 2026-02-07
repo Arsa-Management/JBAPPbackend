@@ -5,31 +5,69 @@ const DeliveryBoy = require("../models/DeliveryBoy");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+onst validatePassword = (password) => {
+  if (!password || password.length < 8)
+    return "Password must be at least 8 characters";
+  if (!/[A-Z]/.test(password))
+    return "Add at least one uppercase letter";
+  if (!/[a-z]/.test(password))
+    return "Add at least one lowercase letter";
+  if (!/[0-9]/.test(password))
+    return "Add at least one number";
+  if (!/[@$!%*?&]/.test(password))
+    return "Add at least one special character";
+  return null;
+};
+
 // ➤ Create User
 router.post("/", async (req, res) => {
- try {
-    const { fullName, email, phone, password } = req.body;
+  try {
+    let { fullName, email, phone, password } = req.body;
 
+    // Required fields
+    if (!fullName || !email || !phone || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Normalize email (IMPORTANT)
+    email = email.toLowerCase().trim();
+
+    // Password validation
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
+    }
+
+    // Check existing user (case-insensitive)
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "Email already registered" });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    // Save user
     const newUser = new User({
       fullName,
-      email,
+      email, // saved in lowercase
       phone,
       passwordHash,
     });
 
     await newUser.save();
-    res.status(201).json({ message: "User registered successfully" });
+
+    return res.status(201).json({
+      message: "User registered successfully",
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
-});
-// ➤ Login User / Delivery Boy
+}); Login User / Delivery Boy
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;

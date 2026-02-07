@@ -7,52 +7,52 @@ const GST_RATE = 0.18;
 /* =========================================================
    1️⃣ PLACE ORDER
 ========================================================= */
-router.post("/", async (req, res) => {
-  try {
-    const {
-      customerId,
-      items,
-      paymentMethod,
-      deliveryAddress,
-      discount = 0,
-    } = req.body;
+// router.post("/", async (req, res) => {
+//   try {
+//     const {
+//       customerId,
+//       items,
+//       paymentMethod,
+//       deliveryAddress,
+//       discount = 0,
+//     } = req.body;
 
-    const subTotal = items.reduce(
-      (sum, item) => sum + item.qty * item.price,
-      0
-    );
+//     const subTotal = items.reduce(
+//       (sum, item) => sum + item.qty * item.price,
+//       0
+//     );
 
-    const gst = subTotal * GST_RATE;
-    const grandTotal = subTotal - discount + gst;
+//     const gst = subTotal * GST_RATE;
+//     const grandTotal = subTotal - discount + gst;
 
-    const newOrder = new Order({
-      customerId,
-      items,
-      subTotal,
-      discount,
-      gst,
-      grandTotal,
-      paymentMethod,
-      deliveryAddress,
-      orderStatus: "Pending",
-    });
+//     const newOrder = new Order({
+//       customerId,
+//       items,
+//       subTotal,
+//       discount,
+//       gst,
+//       grandTotal,
+//       paymentMethod,
+//       deliveryAddress,
+//       orderStatus: "Pending",
+//     });
 
-    await newOrder.save();
+//     await newOrder.save();
 
-    // 🔥 SOCKET: notify admin of new order
-    const io = req.app.get("io");
-    io.to("admin").emit("adminOrderUpdate", {
-      orderId: newOrder._id.toString(),
-      status: newOrder.orderStatus,
-      total: newOrder.grandTotal,
-    });
+//     // 🔥 SOCKET: notify admin of new order
+//     const io = req.app.get("io");
+//     io.to("admin").emit("adminOrderUpdate", {
+//       orderId: newOrder._id.toString(),
+//       status: newOrder.orderStatus,
+//       total: newOrder.grandTotal,
+//     });
 
-    res.status(201).json(newOrder);
-  } catch (error) {
-    console.error("❌ Order create error:", error);
-    res.status(400).json({ error: error.message });
-  }
-});
+//     res.status(201).json(newOrder);
+//   } catch (error) {
+//     console.error("❌ Order create error:", error);
+//     res.status(400).json({ error: error.message });
+//   }
+// });
 
 
 /* =========================================================
