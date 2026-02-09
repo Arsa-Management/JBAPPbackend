@@ -21,17 +21,15 @@ app.get("/payment-failed", (req, res) => {
   res.send("Payment failed");
 });
 app.get("/debug/rooms", (req, res) => {
-  const rooms = io.sockets.adapter.rooms;
-  const result = {};
+  const rooms = {};
 
-  for (const [room, sockets] of rooms) {
-    if (!io.sockets.sockets.get(room)) {
-      result[room] = sockets.size;
-    }
-  }
+  io.sockets.adapter.rooms.forEach((sockets, room) => {
+    rooms[room] = sockets.size;
+  });
 
-  res.json(result);
+  res.json(rooms);
 });
+
 
 // Routes
 app.use("/api/users", require("./routes/userRoutes"));
