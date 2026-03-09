@@ -284,7 +284,7 @@ router.delete("/address/:userId/:addressId", async (req, res) => {
 });
 router.get("/delivery", async (req, res) => {
   try {
-    const deliveryBoys = await User.find({role:"delivery"});
+    const deliveryBoys = await User.find({ role: "delivery" });
 
     console.log(deliveryBoys)
 
