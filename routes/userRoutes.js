@@ -120,10 +120,11 @@ router.get("/delivery", async (req, res) => {
 
         // find delivery boy record linked to this user
         const deliveryBoy = await DeliveryBoy.findOne({ userId: d._id });
-
+        console.log(deliveryBoy)
         let orderCount = 0;
 
         if (deliveryBoy) {
+          console.log(deliveryBoy._id)
           orderCount = await Order.countDocuments({
             deliveryBoyId: deliveryBoy._id,
             orderStatus: "Delivered"
