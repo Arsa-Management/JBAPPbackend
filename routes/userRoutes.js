@@ -115,27 +115,34 @@ router.get("/delivery", async (req, res) => {
   try {
     const deliveryBoys = await User.find({ role: "delivery" });
 
-    console.log("All Delivery Boys:", deliveryBoys);
+    console.log("Delivery Boys:", deliveryBoys.length);
 
     const result = await Promise.all(
       deliveryBoys.map(async (d) => {
 
-        console.log("---------------");
-        console.log("Delivery Boy Name:", d.fullName);
+        console.log("-----------");
+        console.log("User:", d.fullName);
         console.log("User ID:", d._id);
 
-        // Find orders for this delivery boy
-        const orders = await Order.find({ deliveryBoyId: d._id });
+        const deliveryBoy = await DeliveryBoy.findOne({ userId: d._id });
 
-        console.log("Orders found:", orders.length);
-        console.log("Orders Data:", orders);
+        console.log("DeliveryBoy Record:", deliveryBoy);
 
-        const orderCount = await Order.countDocuments({
-          deliveryBoyId: d._id,
-          orderStatus: "Delivered"
-        });
+        let orderCount = 0;
 
-        console.log("Delivered Order Count:", orderCount);
+        if (deliveryBoy) {
+          console.log("DeliveryBoy ID:", deliveryBoy._id);
+
+          const orders = await Order.find({
+            deliveryBoyId: deliveryBoy._id
+          });
+
+          console.log("Orders Found:", orders);
+
+          orderCount = orders.length;
+        }
+
+        console.log("Final Order Count:", orderCount);
 
         return {
           name: d.fullName,
