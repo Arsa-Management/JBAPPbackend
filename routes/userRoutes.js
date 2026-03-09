@@ -289,16 +289,17 @@ router.get("/delivery", async (req, res) => {
 
     const result = await Promise.all(
       deliveryBoys.map(async (d) => {
+
         const orderCount = await Order.countDocuments({
-          deliveryBoyId: d._id,
+          deliveryBoyId: d.userId._id,   // use userId instead of d._id
           status: "Delivered"
         });
 
         return {
-          _id: d._id,
-          fullName: d.userId?.fullName,
-          email: d.userId?.email,
-          phone: d.userId?.phone,
+          _id: d.userId._id,
+          fullName: d.userId.fullName,
+          email: d.userId.email,
+          phone: d.userId.phone,
           vehicleType: d.vehicleType,
           isAvailable: d.isAvailable,
           deliveredOrders: orderCount
@@ -306,10 +307,11 @@ router.get("/delivery", async (req, res) => {
       })
     );
 
+    console.log(result);
     res.json(result);
-    console.log(result)
+
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(500).json({ error: err.message });
   }
 });
