@@ -120,7 +120,7 @@ router.get("/delivery", async (req, res) => {
 
         const orderCount = await Order.countDocuments({
           deliveryBoyId: d._id,
-          status: "Delivered"
+          orderStatus: "Delivered"
         });
         console.log(orderCount);
         return {
