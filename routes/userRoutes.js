@@ -115,21 +115,27 @@ router.get("/delivery", async (req, res) => {
   try {
     const deliveryBoys = await User.find({ role: "delivery" });
 
+    console.log("All Delivery Boys:", deliveryBoys);
+
     const result = await Promise.all(
       deliveryBoys.map(async (d) => {
 
-        // find delivery boy record linked to this user
-        const deliveryBoy = await DeliveryBoy.findOne({ userId: d._id });
-        console.log(deliveryBoy)
-        let orderCount = 0;
+        console.log("---------------");
+        console.log("Delivery Boy Name:", d.fullName);
+        console.log("User ID:", d._id);
 
-        if (deliveryBoy) {
-          console.log(deliveryBoy._id)
-          orderCount = await Order.countDocuments({
-            deliveryBoyId: deliveryBoy._id,
-           
-          });
-        }
+        // Find orders for this delivery boy
+        const orders = await Order.find({ deliveryBoyId: d._id });
+
+        console.log("Orders found:", orders.length);
+        console.log("Orders Data:", orders);
+
+        const orderCount = await Order.countDocuments({
+          deliveryBoyId: d._id,
+          orderStatus: "Delivered"
+        });
+
+        console.log("Delivered Order Count:", orderCount);
 
         return {
           name: d.fullName,
@@ -140,10 +146,12 @@ router.get("/delivery", async (req, res) => {
       })
     );
 
+    console.log("Final Result:", result);
+
     res.json(result);
 
   } catch (err) {
-    console.log(err);
+    console.log("Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
