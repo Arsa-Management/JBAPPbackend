@@ -284,25 +284,21 @@ router.delete("/address/:userId/:addressId", async (req, res) => {
 });
 router.get("/delivery", async (req, res) => {
   try {
-    const deliveryBoys = await User.find({role:"delivery"})
-      .populate("userId", "fullName email phone");
+    const deliveryBoys = await User.find({role:"delivery"});
+
     console.log(deliveryBoys)
-    const result = await Promise.all(
-      deliveryBoys.map(async (d) => {
-          
-        const orderCount = await Order.countDocuments({
-          deliveryBoyId: d.userId._id,   // use userId instead of d._id
-          status: "Delivered"
-        });
+
+    // const result = await Promise.all(
+    //   deliveryBoys.map(async (d) => {
+
+    //     const orderCount = await Order.countDocuments({
+    //       deliveryBoyId: d.userId._id,   // use userId instead of d._id
+    //       status: "Delivered"
+    //     });
 
 
         return {
-          _id: d.userId._id,
-          fullName: d.userId.fullName,
-          email: d.userId.email,
-          phone: d.userId.phone,
-          
-          deliveredOrders: orderCount
+          deliveryBoys
         };
       })
     );
