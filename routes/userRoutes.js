@@ -118,13 +118,19 @@ router.get("/delivery", async (req, res) => {
     const result = await Promise.all(
       deliveryBoys.map(async (d) => {
 
-        const orderCount = await Order.countDocuments({
-          deliveryBoyId: d._id,
-          orderStatus: "Delivered"
-        });
+        // find delivery boy record linked to this user
+        const deliveryBoy = await DeliveryBoy.findOne({ userId: d._id });
+
+        let orderCount = 0;
+
+        if (deliveryBoy) {
+          orderCount = await Order.countDocuments({
+            deliveryBoyId: deliveryBoy._id,
+            orderStatus: "Delivered"
+          });
+        }
 
         return {
-          id: d._id,
           name: d.fullName,
           phone: d.phone,
           email: d.email,
