@@ -122,7 +122,7 @@ router.get("/delivery", async (req, res) => {
           deliveryBoyId: d._id,
           status: "Delivered"
         });
-
+        console.log(orderCount);
         return {
           name: d.fullName,
           phone: d.phone,
