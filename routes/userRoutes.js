@@ -286,14 +286,15 @@ router.get("/delivery", async (req, res) => {
   try {
     const deliveryBoys = await User.find({role:"delivery"})
       .populate("userId", "fullName email phone");
-
+    console.log(deliveryBoys)
     const result = await Promise.all(
       deliveryBoys.map(async (d) => {
-
+          
         const orderCount = await Order.countDocuments({
           deliveryBoyId: d.userId._id,   // use userId instead of d._id
           status: "Delivered"
         });
+
 
         return {
           _id: d.userId._id,
