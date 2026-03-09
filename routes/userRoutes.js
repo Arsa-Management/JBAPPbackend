@@ -297,14 +297,14 @@ router.get("/delivery", async (req, res) => {
     //     });
 
 
-        return {
-          deliveryBoys
-        };
-      })
-    );
+    //     return {
+    //       deliveryBoys
+    //     };
+    //   })
+    // );
 
-    console.log(result);
-    res.json(result);
+    console.log(deliveryBoys);
+    res.json(deliveryBoys);
 
   } catch (err) {
     console.log(err);
