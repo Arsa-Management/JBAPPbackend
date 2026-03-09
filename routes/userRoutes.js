@@ -159,7 +159,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-router.get("/", async (req, res) => {
+router.get("/delivery", async (req, res) => {
   try {
     const users = await User.find({ role: "delivery" });
     res.json(users);
