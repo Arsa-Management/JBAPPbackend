@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const Order = require("../models/Order");
 const DeliveryBoy = require("../models/DeliveryBoy");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -159,14 +160,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-router.get("/delivery", async (req, res) => {
-  try {
-    const users = await User.find({ role: "delivery" });
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 
 // ➤ Get Single User
 router.get("/:id", async (req, res) => {
@@ -288,5 +282,33 @@ router.delete("/address/:userId/:addressId", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+router.get("/delivery", async (req, res) => {
+  try {
+    const deliveryBoys = await DeliveryBoy.find()
+      .populate("userId", "fullName email phone");
 
+    const result = await Promise.all(
+      deliveryBoys.map(async (d) => {
+        const orderCount = await Order.countDocuments({
+          deliveryBoyId: d._id,
+          status: "Delivered"
+        });
+
+        return {
+          _id: d._id,
+          fullName: d.userId?.fullName,
+          email: d.userId?.email,
+          phone: d.userId?.phone,
+          vehicleType: d.vehicleType,
+          isAvailable: d.isAvailable,
+          deliveredOrders: orderCount
+        };
+      })
+    );
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;
