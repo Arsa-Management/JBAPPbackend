@@ -134,7 +134,7 @@ router.get("/delivery", async (req, res) => {
           console.log("DeliveryBoy ID:", deliveryBoy._id);
 
           const orders = await Order.find({
-            deliveryBoyId: deliveryBoy._id
+            deliveryBoyId: deliveryBoy._id,
             orderStatus: "Delivered"
           });
 
