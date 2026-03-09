@@ -117,13 +117,14 @@ router.get("/delivery", async (req, res) => {
 
     const result = await Promise.all(
       deliveryBoys.map(async (d) => {
-        console.log(d._id)
+
         const orderCount = await Order.countDocuments({
           deliveryBoyId: d._id,
           orderStatus: "Delivered"
         });
-        console.log(orderCount);
+
         return {
+          id: d._id,
           name: d.fullName,
           phone: d.phone,
           email: d.email,
@@ -131,7 +132,6 @@ router.get("/delivery", async (req, res) => {
         };
       })
     );
-    console.log(result)
 
     res.json(result);
 
