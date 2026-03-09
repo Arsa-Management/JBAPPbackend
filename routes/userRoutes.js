@@ -111,6 +111,35 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.get("/delivery", async (req, res) => {
+  try {
+    const deliveryBoys = await User.find({ role: "delivery" });
+
+    console.log(deliveryBoys)
+
+    // const result = await Promise.all(
+    //   deliveryBoys.map(async (d) => {
+
+    //     const orderCount = await Order.countDocuments({
+    //       deliveryBoyId: d.userId._id,   // use userId instead of d._id
+    //       status: "Delivered"
+    //     });
+
+
+    //     return {
+    //       deliveryBoys
+    //     };
+    //   })
+    // );
+
+    console.log(deliveryBoys);
+    res.json(deliveryBoys);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.post("/add-delivery-boy", async (req, res) => {
   try {
@@ -282,33 +311,5 @@ router.delete("/address/:userId/:addressId", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-router.get("/delivery", async (req, res) => {
-  try {
-    const deliveryBoys = await User.find({ role: "delivery" });
 
-    console.log(deliveryBoys)
-
-    // const result = await Promise.all(
-    //   deliveryBoys.map(async (d) => {
-
-    //     const orderCount = await Order.countDocuments({
-    //       deliveryBoyId: d.userId._id,   // use userId instead of d._id
-    //       status: "Delivered"
-    //     });
-
-
-    //     return {
-    //       deliveryBoys
-    //     };
-    //   })
-    // );
-
-    console.log(deliveryBoys);
-    res.json(deliveryBoys);
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
-  }
-});
 module.exports = router;
