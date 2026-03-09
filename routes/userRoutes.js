@@ -284,7 +284,7 @@ router.delete("/address/:userId/:addressId", async (req, res) => {
 });
 router.get("/delivery", async (req, res) => {
   try {
-    const deliveryBoys = await DeliveryBoy.find()
+    const deliveryBoys = await User.find({role:"delivery"})
       .populate("userId", "fullName email phone");
 
     const result = await Promise.all(
@@ -300,8 +300,7 @@ router.get("/delivery", async (req, res) => {
           fullName: d.userId.fullName,
           email: d.userId.email,
           phone: d.userId.phone,
-          vehicleType: d.vehicleType,
-          isAvailable: d.isAvailable,
+          
           deliveredOrders: orderCount
         };
       })
