@@ -117,23 +117,23 @@ router.get("/delivery", async (req, res) => {
 
     console.log(deliveryBoys)
 
-    // const result = await Promise.all(
-    //   deliveryBoys.map(async (d) => {
+    const result = await Promise.all(
+      deliveryBoys.map(async (d) => {
 
-    //     const orderCount = await Order.countDocuments({
-    //       deliveryBoyId: d.userId._id,   // use userId instead of d._id
-    //       status: "Delivered"
-    //     });
+        const orderCount = await Order.countDocuments({
+          deliveryBoyId: d.userId._id,   // use userId instead of d._id
+          status: "Delivered"
+        });
 
 
-    //     return {
-    //       deliveryBoys
-    //     };
-    //   })
-    // );
+        return {
+          deliveryBoys
+        };
+      })
+    );
 
-    console.log(deliveryBoys);
-    res.json(deliveryBoys);
+    console.log(result);
+    res.json(result);
 
   } catch (err) {
     console.log(err);
